@@ -25,6 +25,7 @@ class Graph {
         this.AdjList = new Map();
         this.VertList = new Map();
         this.EdgeList = new Map();
+        this.EdgeListCost = new Map();
         this.AdjMatrix = Creer_Tableau(noOfVertices, noOfVertices);
         this.cptVertex = 0;
         this.directed = directed;
@@ -42,7 +43,7 @@ class Graph {
         this.cptVertex++;
     }
     // add edge to the graph
-    addEdge(v, w) {
+    addEdge(v, w, cost) {
         // get the list for vertex v and put the
         // vertex w denoting edge between v and w
         this.AdjList.get(v).push(w);
@@ -55,9 +56,22 @@ class Graph {
         this.AdjMatrix[this.VertList.get(v)][this.VertList.get(w)] = 1;
         this.AdjMatrix[this.VertList.get(w)][this.VertList.get(v)] = 1;
         this.EdgeList.set(this.cptEdge, v + "-" + w);
+        this.EdgeListCost.set(this.cptEdge, cost);
         this.cptEdge++;
     }
+    //
+    //
+    //
+    getCostOfEdge(edge) {
+        let index = -1;
+        for (const [vert, value] of this.EdgeList) {
+            if (value === edge) index = vert;
+        }
+        return this.EdgeListCost.get(index);
+    }
+    //
     // Prints the vertex and adjacency list
+    //
     adj_List() {
         // get all the vertices
         var get_keys = this.AdjList.keys();
@@ -112,11 +126,11 @@ class Graph {
             }
             k = k + 1;
         } while (!stable)
-        if (debug) console.log("Distance à "+u);
+        if (debug) console.log("Distance à " + u);
         if (debug) console.log(dist_u);
-        let ecc=0;
+        let ecc = 0;
         for (const [key, value] of dist_u) {
-            if (value>ecc) ecc=value;
+            if (value > ecc) ecc = value;
         }
         return ecc;
     }
@@ -124,19 +138,82 @@ class Graph {
     //
     //
     //
-    radius_diameter(debug){
-        let rad=1000;
-        let diam=0;
-       
+    radius_diameter(debug) {
+        let rad = 1000;
+        let diam = 0;
+
         for (const [vert, value] of this.VertList) {
-        
-            let ecc=this.bfs(vert,false);
-            if (debug) console.log("ECC node "+vert+"="+ecc);
-            if (ecc<rad) rad=ecc;
-            if (ecc>diam) diam=ecc;
+
+            let ecc = this.bfs(vert, false);
+            if (debug) console.log("ECC node " + vert + "=" + ecc);
+            if (ecc < rad) rad = ecc;
+            if (ecc > diam) diam = ecc;
         }
-        console.log("Radius="+rad);
-        console.log("Diametre="+diam);
+        console.log("Radius=" + rad);
+        console.log("Diametre=" + diam);
+    }
+    //
+    //
+    //
+    getIdOfVertex(vertex) {
+        for (const [vert, value] of this.VertList) {
+            if (vertext === vert) return value;
+        }
+        return -1;
+    }
+    //
+    //
+    //
+    getVertexOfId(id) {
+        for (const [vert, value] of this.VertList) {
+            if (value === id) return vert;
+        }
+        return "";
+    }
+    //
+    //
+    //
+    bellman_ford(u, debug) {
+        let pi_tab = Creer_Tableau(this.noOfVertices, this.noOfVertices);
+        let pred_tab = new Array(this.noOfVertices);
+        for (let i = 0; i < this.noOfVertices; i++) {
+            for (let j = 0; j < this.noOfVertices; j++) {
+                if (i===0) pi_tab[0][j] = (j === this.VertList.get(u)) ? 0 : 1000;
+                else  pi_tab[i][j] = 0;
+            }
+        }
+        if (debug) console.log(pi_tab[0]);
+        let k = 0;
+        let stable;
+        do {
+            if (debug) console.log("Iteration=" + k);
+            k = k + 1;
+            stable = true;
+            for (let x = 0; x < this.noOfVertices; x++) {
+                for (let y = 0; y < this.noOfVertices; y++) {
+                    // si le path appartient à U :G(S,U)
+                    let ch = this.getVertexOfId(x) + "-" + this.getVertexOfId(y);
+                    let tab = Array.from(this.EdgeList.values());
+                    if (tab.indexOf(ch) !== -1) {
+                        //if (debug) console.log("Test avec " + ch);
+                        if (pi_tab[k - 1][y] > (pi_tab[k - 1][x] + this.getCostOfEdge(ch))) {
+                            pi_tab[k][y] = (pi_tab[k - 1][x] + this.getCostOfEdge(ch));
+                            pred_tab[y] = x;
+                            stable = false;
+                            if (debug) console.log("pred_tab["+y+"]="+x);
+                        }
+                        else if (k<this.noOfVertices){
+                            pi_tab[k][y] = pi_tab[k - 1][y];
+                        }
+                    }
+                }
+            }
+          
+            if (debug) console.log(pi_tab[k]);
+        } while (!stable || k <= this.noOfVertices - 1)
+        if (k > this.noOfVertices - 1) {
+            console.log("Negativ circuit no solution");
+        }
     }
     // dfs(v)
     // Main DFS method
@@ -194,11 +271,27 @@ class Graph {
             }
         }
     }
-    
+    //
+    //
+    //
+    getLenEdge() {
+        return Array.from(this.EdgeList.keys()).length;
+    }
 }
+
+//
+//
+//
 Graph.prototype.toString = function graphToString() {
-    return "G(["+Array.from( this.VertList.keys() )+"],["+Array.from( this.EdgeList.values() )+"])";
-  };
+
+    let ch = "";
+    let i = 0;
+    for (const [cpt, value] of this.EdgeList) {
+        ch += value + "(" + this.EdgeListCost.get(cpt) + ")" + ((i === this.getLenEdge() - 1) ? "" : ",");
+        i++;
+    }
+    return "G([" + Array.from(this.VertList.keys()) + "],[" + ch + "])";
+};
 console.log("=========== SESSION 1 ===========");
 // Using the above implemented graph class
 var g = new Graph(6, true);
@@ -210,14 +303,14 @@ for (var i = 0; i < vertices.length; i++) {
 }
 
 // adding edges
-g.addEdge('A', 'B');
-g.addEdge('A', 'D');
-g.addEdge('A', 'E');
-g.addEdge('B', 'C');
-g.addEdge('D', 'E');
-g.addEdge('E', 'F');
-g.addEdge('E', 'C');
-g.addEdge('C', 'F');
+g.addEdge('A', 'B', 1);
+g.addEdge('A', 'D', 1);
+g.addEdge('A', 'E', 1);
+g.addEdge('B', 'C', 1);
+g.addEdge('D', 'E', 1);
+g.addEdge('E', 'F', 1);
+g.addEdge('E', 'C', 1);
+g.addEdge('C', 'F', 1);
 
 // prints all vertex and
 // its adjacency list
@@ -243,19 +336,19 @@ for (var i = 0; i < vertices2.length; i++) {
     g2.addVertex(vertices2[i]);
 }
 // adding edges
-g2.addEdge('1', '7');
-g2.addEdge('6', '7');
-g2.addEdge('7', '7');
-g2.addEdge('2', '3');
-g2.addEdge('7', '3');
-g2.addEdge('7', '8');
-g2.addEdge('8', '3');
-g2.addEdge('3', '4');
-g2.addEdge('5', '10');
-g2.addEdge('9', '10');
-let ecc=g2.bfs("1", false);
+g2.addEdge('1', '7', 1);
+g2.addEdge('6', '7', 1);
+g2.addEdge('7', '7', 1);
+g2.addEdge('2', '3', 1);
+g2.addEdge('7', '3', 1);
+g2.addEdge('7', '8', 1);
+g2.addEdge('8', '3', 1);
+g2.addEdge('3', '4', 1);
+g2.addEdge('5', '10', 1);
+g2.addEdge('9', '10', 1);
+let ecc = g2.bfs("1", false);
 console.log(g2.toString());
-console.log("ECC node 1="+ecc);
+console.log("ECC node 1=" + ecc);
 
 
 var g3 = new Graph(8, false);
@@ -266,13 +359,36 @@ for (var i = 0; i < vertices3.length; i++) {
 }
 
 // adding edges
-g3.addEdge('1', '5');
-g3.addEdge('5', '2');
-g3.addEdge('2', '6');
-g3.addEdge('2', '7');
-g3.addEdge('2', '3');
-g3.addEdge('7', '3');
-g3.addEdge('3', '4');
-g3.addEdge('7', '8');
+g3.addEdge('1', '5', 1);
+g3.addEdge('5', '2', 1);
+g3.addEdge('2', '6', 1);
+g3.addEdge('2', '7', 1);
+g3.addEdge('2', '3', 1);
+g3.addEdge('7', '3', 1);
+g3.addEdge('3', '4', 1);
+g3.addEdge('7', '8', 1);
 console.log(g3.toString());
 g3.radius_diameter(false);
+
+console.log("=========== SESSION 4 ===========");
+var g4 = new Graph(9, true);
+var vertices4 = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+// adding vertices
+for (var i = 0; i < vertices4.length; i++) {
+    g4.addVertex(vertices4[i]);
+}
+g4.addEdge('1', '2', 3);
+g4.addEdge('1', '4', 2);
+g4.addEdge('1', '6', 4);
+g4.addEdge('2', '3', 7);
+g4.addEdge('3', '9', 5);
+g4.addEdge('4', '5', 4);
+g4.addEdge('4', '7', 5);
+g4.addEdge('5', '7', 3);
+g4.addEdge('5', '9', 9);
+g4.addEdge('6', '7', 3);
+g4.addEdge('7', '8', 3);
+g4.addEdge('8', '5', -6);
+g4.addEdge('8', '9', 5);
+console.log(g4.toString());
+g4.bellman_ford("1", true);
