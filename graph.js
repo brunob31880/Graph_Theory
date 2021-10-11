@@ -176,6 +176,7 @@ class Graph {
     bellman_ford(u, debug) {
         let pi_tab = new Array(this.noOfVertices);
         let pred_tab = new Array(this.noOfVertices);
+        // Initialisation
         for (let j = 0; j < this.noOfVertices; j++) {
             pi_tab[j] = (j === this.VertList.get(u)) ? 0 : 1000;
             pred_tab[j]=-1;
@@ -212,6 +213,30 @@ class Graph {
         }
         console.log("Tableau PI="+pi_tab);
         console.log("Pred_tab="+pred_tab);
+    }
+    //
+    //
+    //
+    testOnEdgesWithM(){
+        
+    }
+    //
+    //
+    //
+    dijkstras(u,debug){
+        let M=new Array(this.noOfVertices);
+        let pred_tab = new Array(this.noOfVertices);
+       
+        let pi_tab = new Array(this.noOfVertices);
+        //Initialisation
+        for (let j = 0; j < this.noOfVertices; j++) {
+            pi_tab[j] = (j === this.VertList.get(u)) ? 0 : 1000;
+            pred_tab[j]=-1;
+        }
+        M.push(u);
+        do {
+
+        }while(testOnEdgesWithM())
     }
     // dfs(v)
     // Main DFS method
