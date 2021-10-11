@@ -174,13 +174,11 @@ class Graph {
     //
     //
     bellman_ford(u, debug) {
-        let pi_tab = Creer_Tableau(this.noOfVertices, this.noOfVertices);
+        let pi_tab = new Array(this.noOfVertices);
         let pred_tab = new Array(this.noOfVertices);
-        for (let i = 0; i < this.noOfVertices; i++) {
-            for (let j = 0; j < this.noOfVertices; j++) {
-                if (i===0) pi_tab[0][j] = (j === this.VertList.get(u)) ? 0 : 1000;
-                else  pi_tab[i][j] = 0;
-            }
+        for (let j = 0; j < this.noOfVertices; j++) {
+            pi_tab[j] = (j === this.VertList.get(u)) ? 0 : 1000;
+            pred_tab[j]=-1;
         }
         if (debug) console.log(pi_tab[0]);
         let k = 0;
@@ -195,25 +193,25 @@ class Graph {
                     let ch = this.getVertexOfId(x) + "-" + this.getVertexOfId(y);
                     let tab = Array.from(this.EdgeList.values());
                     if (tab.indexOf(ch) !== -1) {
-                        //if (debug) console.log("Test avec " + ch);
-                        if (pi_tab[k - 1][y] > (pi_tab[k - 1][x] + this.getCostOfEdge(ch))) {
-                            pi_tab[k][y] = (pi_tab[k - 1][x] + this.getCostOfEdge(ch));
+                        if (debug) console.log("Test avec " + ch);
+                        if (pi_tab[y] > (pi_tab[x] + this.getCostOfEdge(ch))) {
+                            if (debug) console.log("Modification pi_tab pour " + this.getVertexOfId(y)+" a "+(pi_tab[x] + this.getCostOfEdge(ch)));
+                            pi_tab[y] = (pi_tab[x] + this.getCostOfEdge(ch));
                             pred_tab[y] = x;
                             stable = false;
-                            if (debug) console.log("pred_tab["+y+"]="+x);
-                        }
-                        else if (k<this.noOfVertices){
-                            pi_tab[k][y] = pi_tab[k - 1][y];
-                        }
+                            if (debug) console.log("pred_tab["+this.getVertexOfId(y)+"]="+this.getVertexOfId(x));
+                        }           
                     }
                 }
             }
           
-            if (debug) console.log(pi_tab[k]);
-        } while (!stable || k <= this.noOfVertices - 1)
+            if (debug) console.log("Tableau PI="+pi_tab+" Stable="+stable+" Condition="+((!stable) && (k <= this.noOfVertices - 1)));
+        } while ((!stable) && (k <= this.noOfVertices - 1))
         if (k > this.noOfVertices - 1) {
             console.log("Negativ circuit no solution");
         }
+        console.log("Tableau PI="+pi_tab);
+        console.log("Pred_tab="+pred_tab);
     }
     // dfs(v)
     // Main DFS method
@@ -384,11 +382,11 @@ g4.addEdge('2', '3', 7);
 g4.addEdge('3', '9', 5);
 g4.addEdge('4', '5', 4);
 g4.addEdge('4', '7', 5);
-g4.addEdge('5', '7', 3);
+g4.addEdge('5', '3', 3);
 g4.addEdge('5', '9', 9);
 g4.addEdge('6', '7', 3);
 g4.addEdge('7', '8', 3);
 g4.addEdge('8', '5', -6);
 g4.addEdge('8', '9', 5);
 console.log(g4.toString());
-g4.bellman_ford("1", true);
+g4.bellman_ford("1", false);
