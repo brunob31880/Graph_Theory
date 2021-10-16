@@ -214,17 +214,61 @@ class Graph {
         console.log("Tableau PI="+pi_tab);
         console.log("Pred_tab="+pred_tab);
     }
+      //
     //
     //
-    //
-    testOnEdgesWithM(){
-        
+    edgesWithM(M,debug){
+        let ret=[];
+        if (debug) console.log("Searching with M="+M);
+        for (const [key, value] of this.EdgeList) {
+            
+            var init = value.charAt(0);
+            var end = value.charAt(2);
+            if ((M.indexOf(init)!==-1) && (M.indexOf(end)==-1)) {
+                if (debug) console.log("Find good edge Value="+value);
+                ret.push(init+"-"+end);
+            }
+        }
+        return ret;
     }
     //
     //
     //
-    dijkstras(u,debug){
-        let M=new Array(this.noOfVertices);
+    testOnEdgesWithM(M,debug){
+        return (this.edgesWithM(M,debug).length===0?false:true);
+    }
+    //
+    //
+    //
+    searchVertexMin(pi_tab,M,debug){
+        let pi=1000;
+        let tabedges=this.edgesWithM(M,debug);
+        if (debug) console.log("TabEdges="+tabedges);
+        let utilde;
+        for (i in tabedges){
+            let edge=tabedges[i];
+            let cost=this.getCostOfEdge(edge);
+            let iverte=edge.charAt(0);
+            let index_ivert=this.VertList.get(iverte);
+            let piu=pi_tab[index_ivert];
+            let sum=piu+cost;
+            if (debug) console.log("Sum="+sum+" pi="+pi);
+            if (sum<pi) {
+                pi=sum;
+                utilde=edge;
+            }
+        }
+        let ret=[];
+        ret.push(utilde);
+        ret.push(pi);
+        if (debug) console.log("UTILDE="+utilde)
+        return ret;
+    }
+    //
+    //
+    //
+    dijkstra(u,debug){
+        let M=[];
         let pred_tab = new Array(this.noOfVertices);
        
         let pi_tab = new Array(this.noOfVertices);
@@ -235,8 +279,17 @@ class Graph {
         }
         M.push(u);
         do {
-
-        }while(testOnEdgesWithM())
+            let ret=this.searchVertexMin(pi_tab,M,debug);
+            let utilde=ret[0];
+            let x=utilde.charAt(2);
+            pi_tab[this.VertList.get(x)]=ret[1];
+            pred_tab[this.VertList.get(x)] =this.VertList.get(utilde.charAt(0));
+            if (debug) console.log("Adding "+x+" to M");
+            M.push(x);
+            if (debug) console.log(M);
+        }while(this.testOnEdgesWithM(M,debug))
+        console.log("Tableau PI="+pi_tab);
+        console.log("Pred_tab="+pred_tab);
     }
     // dfs(v)
     // Main DFS method
@@ -414,4 +467,29 @@ g4.addEdge('7', '8', 3);
 g4.addEdge('8', '5', -6);
 g4.addEdge('8', '9', 5);
 console.log(g4.toString());
+console.log("Algorithme de Bellman Ford");
 g4.bellman_ford("1", false);
+//
+//
+var g5 = new Graph(8, true);
+var vertices5 = ['s','1', '2', '3', '4', '5', '6', 't'];
+// adding vertices
+for (var i = 0; i < vertices5.length; i++) {
+    g5.addVertex(vertices5[i]);
+}
+g5.addEdge('s', '3', 2);
+g5.addEdge('1', 's', 1);
+g5.addEdge('1', '2', 7);
+g5.addEdge('2', '4', 2);
+g5.addEdge('3', '1', 4);
+g5.addEdge('3', '2', 6);
+g5.addEdge('3', '4', 9);
+g5.addEdge('4', '6', 3);
+g5.addEdge('4', 't', 6);
+g5.addEdge('5', '3', 4);
+g5.addEdge('6', '5', 2);
+g5.addEdge('6', 't', 1);
+g5.addEdge('t', '2', 5);
+console.log(g5.toString());
+console.log("Algorithme de Djikstra");
+g5.dijkstra("s",false);
