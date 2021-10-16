@@ -493,3 +493,81 @@ g5.addEdge('t', '2', 5);
 console.log(g5.toString());
 console.log("Algorithme de Djikstra");
 g5.dijkstra("s",false);
+
+console.log("=========== Exercices 1 SESSION 4 ===========");
+
+var g7 = new Graph(8, true);
+var vertices7 = ['A', 'B', 'C', 'D', 'E', 'F','G','H'];
+// adding vertices
+for (var i = 0; i < vertices7.length; i++) {
+    g7.addVertex(vertices7[i]);
+}
+g7.addEdge('A', 'B', 3);
+g7.addEdge('B', 'A', 3);
+
+g7.addEdge('C', 'B', 3);
+g7.addEdge('B', 'C', 3);
+
+g7.addEdge('A', 'C', 7);
+g7.addEdge('C', 'A', 7);
+
+g7.addEdge('B', 'E', 11);
+g7.addEdge('E', 'B', 11);
+
+g7.addEdge('C', 'E', 3);
+g7.addEdge('E', 'C', 3);
+
+g7.addEdge('A', 'D', 11);
+g7.addEdge('D', 'A', 11);
+
+g7.addEdge('C', 'D', 4);
+g7.addEdge('D', 'C', 4);
+
+g7.addEdge('B', 'D', 7);
+g7.addEdge('D', 'B', 7);
+
+g7.addEdge('E', 'D', 9);
+g7.addEdge('D', 'E', 9);
+
+g7.addEdge('E', 'G', 10);
+g7.addEdge('G', 'E', 10);
+
+g7.addEdge('D', 'G', 2);
+g7.addEdge('G', 'D', 2);
+
+g7.addEdge('E', 'F', 8);
+g7.addEdge('F', 'E', 8);
+
+g7.addEdge('F', 'G', 4);
+g7.addEdge('G', 'F', 4);
+
+g7.addEdge('F', 'H', 7);
+g7.addEdge('H', 'F', 7);
+
+g7.addEdge('H', 'G', 12);
+g7.addEdge('G', 'H', 12);
+
+console.log(g7.toString());
+console.log("Algorithme de Djikstra");
+g7.dijkstra("A", false);
+console.log("Algorithme de Bellman Ford");
+g7.bellman_ford("A", false);
+console.log("=========== Exercices 3 SESSION 4 ===========");
+var g6 = new Graph(6, true);
+var vertices6 = ['a', 'b', 'c', 'd', 'e', 'f'];
+// adding vertices
+for (var i = 0; i < vertices6.length; i++) {
+    g6.addVertex(vertices6[i]);
+}
+g6.addEdge('a', 'b', 4);
+g6.addEdge('b', 'd', -2);
+g6.addEdge('d', 'f', 3);
+g6.addEdge('e', 'f', 1);
+g6.addEdge('e', 'c', 2);
+g6.addEdge('b', 'e', 1);
+g6.addEdge('c', 'b', 1);
+g6.addEdge('a', 'c', 1);
+
+console.log(g6.toString());
+console.log("Algorithme de Bellman Ford");
+g6.bellman_ford("a", false);
