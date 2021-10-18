@@ -49,7 +49,7 @@ class Graph {
         this.AdjList.get(v).push(w);
         //
         //  
-        // console.log(this.VertList.get(v) + " " + this.VertList.get(w));
+        // document.write(this.VertList.get(v) + " " + this.VertList.get(w));
         // Since graph is undirected,
         // add an edge from w to v also
         this.AdjList.get(w).push(v);
@@ -68,6 +68,38 @@ class Graph {
             if (value === edge) index = vert;
         }
         return this.EdgeListCost.get(index);
+    }
+    //
+    // 
+    //
+    add_Matrix_Line(tLigne) {
+
+        document.write("<mtr>");
+        let tab = Array.from(tLigne);
+        for (let i = 0; i < tab.length; i++) {
+            document.write("<mtd><mn>" + tab[i] + "</mn></mtd>");
+        }
+        document.write("</mtr>");
+    }
+    //
+    // Affiche en math ML une matrice de n lignes p colonnes
+    //
+    draw_Matrix(name, mat, n) {
+
+        document.write("<math xmlns = \"http://www.w3.org/1998/Math/MathML\">");
+        document.write("<mrow>");
+        document.write("<mi>" + name + "</mi>");
+        document.write("<mo>=</mo>");
+        document.write("<mo>[</mo>");
+        document.write("<mtable>");
+        for (let i = 0; i < n; i++) {
+            console.log("Ici " + n);
+            this.add_Matrix_Line(mat[i]);
+        }
+        document.write("</mtable>");
+        document.write("<mo>]</mo>");
+        document.write("</mrow>");
+        document.write("</math>");
     }
     //
     // Prints the vertex and adjacency list
@@ -89,7 +121,8 @@ class Graph {
                 conc += j + " ";
 
             // print the vertex and its adjacency list
-            console.log(i + " -> " + conc);
+            document.write(i + " -> " + conc);
+            document.write("<br/>");
         }
     }
     //
@@ -100,34 +133,34 @@ class Graph {
         // 1000 corresponds au maximum
         let dist_u = new Map();
         for (const [key, value] of this.VertList) {
-            // console.log(u+" "+key);
+            // document.write(u+" "+key);
             dist_u.set(key, (u === key) ? 0 : 1000);
         }
         let stable;
         do {
             stable = true;
-            if (debug) console.log("Distance " + k);
+            if (debug) document.write("Distance " + k);
             for (const [key, value] of this.VertList) {
                 if (dist_u.get(key) === k) {
                     if (debug) process.stdout.write(key + ",");
                     var get_List = this.AdjList.get(key);
-                    if (debug) console.log(get_List);
+                    if (debug) document.write(get_List);
                     for (var i in get_List) {
                         let vert = get_List[i];
                         // unvisited
                         if (dist_u.get(vert) === 1000) {
-                            if (debug) console.log("Voisin " + get_List[i]);
+                            if (debug) document.write("Voisin " + get_List[i]);
                             stable = false;
                             dist_u.set(vert, k + 1);
                         }
                     }
                 }
-                //else console.log(key+" "+dist_u.get(key));
+                //else document.write(key+" "+dist_u.get(key));
             }
             k = k + 1;
         } while (!stable)
-        if (debug) console.log("Distance à " + u);
-        if (debug) console.log(dist_u);
+        if (debug) document.write("Distance à " + u);
+        if (debug) document.write(dist_u);
         let ecc = 0;
         for (const [key, value] of dist_u) {
             if (value > ecc) ecc = value;
@@ -145,12 +178,13 @@ class Graph {
         for (const [vert, value] of this.VertList) {
 
             let ecc = this.bfs(vert, false);
-            if (debug) console.log("ECC node " + vert + "=" + ecc);
+            if (debug) document.write("ECC node " + vert + "=" + ecc);
             if (ecc < rad) rad = ecc;
             if (ecc > diam) diam = ecc;
         }
-        console.log("Radius=" + rad);
-        console.log("Diametre=" + diam);
+        document.write("Radius=" + rad);
+        document.write("<br/>");
+        document.write("Diametre=" + diam);
     }
     //
     //
@@ -179,13 +213,13 @@ class Graph {
         // Initialisation
         for (let j = 0; j < this.noOfVertices; j++) {
             pi_tab[j] = (j === this.VertList.get(u)) ? 0 : 1000;
-            pred_tab[j]=-1;
+            pred_tab[j] = -1;
         }
-        if (debug) console.log(pi_tab[0]);
+        if (debug) document.write(pi_tab[0]);
         let k = 0;
         let stable;
         do {
-            if (debug) console.log("Iteration=" + k);
+            if (debug) document.write("Iteration=" + k);
             k = k + 1;
             stable = true;
             for (let x = 0; x < this.noOfVertices; x++) {
@@ -194,39 +228,40 @@ class Graph {
                     let ch = this.getVertexOfId(x) + "-" + this.getVertexOfId(y);
                     let tab = Array.from(this.EdgeList.values());
                     if (tab.indexOf(ch) !== -1) {
-                        if (debug) console.log("Test avec " + ch);
+                        if (debug) document.write("Test avec " + ch);
                         if (pi_tab[y] > (pi_tab[x] + this.getCostOfEdge(ch))) {
-                            if (debug) console.log("Modification pi_tab pour " + this.getVertexOfId(y)+" a "+(pi_tab[x] + this.getCostOfEdge(ch)));
+                            if (debug) document.write("Modification pi_tab pour " + this.getVertexOfId(y) + " a " + (pi_tab[x] + this.getCostOfEdge(ch)));
                             pi_tab[y] = (pi_tab[x] + this.getCostOfEdge(ch));
                             pred_tab[y] = x;
                             stable = false;
-                            if (debug) console.log("pred_tab["+this.getVertexOfId(y)+"]="+this.getVertexOfId(x));
-                        }           
+                            if (debug) document.write("pred_tab[" + this.getVertexOfId(y) + "]=" + this.getVertexOfId(x));
+                        }
                     }
                 }
             }
-          
-            if (debug) console.log("Tableau PI="+pi_tab+" Stable="+stable+" Condition="+((!stable) && (k <= this.noOfVertices - 1)));
+
+            if (debug) document.write("Tableau PI=" + pi_tab + " Stable=" + stable + " Condition=" + ((!stable) && (k <= this.noOfVertices - 1)));
         } while ((!stable) && (k <= this.noOfVertices - 1))
         if (k > this.noOfVertices - 1) {
-            console.log("Negativ circuit no solution");
+            document.write("Negativ circuit no solution");
         }
-        console.log("Tableau PI="+pi_tab);
-        console.log("Pred_tab="+pred_tab);
+        document.write("Tableau PI=" + pi_tab);
+        document.write("<br/>");
+        document.write("Pred_tab=" + pred_tab);
     }
-      //
     //
     //
-    edgesWithM(M,debug){
-        let ret=[];
-        if (debug) console.log("Searching with M="+M);
+    //
+    edgesWithM(M, debug) {
+        let ret = [];
+        if (debug) document.write("Searching with M=" + M);
         for (const [key, value] of this.EdgeList) {
-            
+
             var init = value.charAt(0);
             var end = value.charAt(2);
-            if ((M.indexOf(init)!==-1) && (M.indexOf(end)==-1)) {
-                if (debug) console.log("Find good edge Value="+value);
-                ret.push(init+"-"+end);
+            if ((M.indexOf(init) !== -1) && (M.indexOf(end) == -1)) {
+                if (debug) document.write("Find good edge Value=" + value);
+                ret.push(init + "-" + end);
             }
         }
         return ret;
@@ -234,62 +269,113 @@ class Graph {
     //
     //
     //
-    testOnEdgesWithM(M,debug){
-        return (this.edgesWithM(M,debug).length===0?false:true);
+    testOnEdgesWithM(M, debug) {
+        return (this.edgesWithM(M, debug).length === 0 ? false : true);
     }
     //
     //
     //
-    searchVertexMin(pi_tab,M,debug){
-        let pi=1000;
-        let tabedges=this.edgesWithM(M,debug);
-        if (debug) console.log("TabEdges="+tabedges);
+    searchVertexMin(pi_tab, M, debug) {
+        let pi = 1000;
+        let tabedges = this.edgesWithM(M, debug);
+        if (debug) document.write("TabEdges=" + tabedges);
         let utilde;
-        for (i in tabedges){
-            let edge=tabedges[i];
-            let cost=this.getCostOfEdge(edge);
-            let iverte=edge.charAt(0);
-            let index_ivert=this.VertList.get(iverte);
-            let piu=pi_tab[index_ivert];
-            let sum=piu+cost;
-            if (debug) console.log("Sum="+sum+" pi="+pi);
-            if (sum<pi) {
-                pi=sum;
-                utilde=edge;
+        for (i in tabedges) {
+            let edge = tabedges[i];
+            let cost = this.getCostOfEdge(edge);
+            let iverte = edge.charAt(0);
+            let index_ivert = this.VertList.get(iverte);
+            let piu = pi_tab[index_ivert];
+            let sum = piu + cost;
+            if (debug) document.write("Sum=" + sum + " pi=" + pi);
+            if (sum < pi) {
+                pi = sum;
+                utilde = edge;
             }
         }
-        let ret=[];
+        let ret = [];
         ret.push(utilde);
         ret.push(pi);
-        if (debug) console.log("UTILDE="+utilde)
+        if (debug) document.write("UTILDE=" + utilde)
         return ret;
     }
     //
     //
     //
-    dijkstra(u,debug){
-        let M=[];
+    dijkstra(u, debug) {
+        let M = [];
         let pred_tab = new Array(this.noOfVertices);
-       
+
         let pi_tab = new Array(this.noOfVertices);
         //Initialisation
         for (let j = 0; j < this.noOfVertices; j++) {
             pi_tab[j] = (j === this.VertList.get(u)) ? 0 : 1000;
-            pred_tab[j]=-1;
+            pred_tab[j] = -1;
         }
         M.push(u);
         do {
-            let ret=this.searchVertexMin(pi_tab,M,debug);
-            let utilde=ret[0];
-            let x=utilde.charAt(2);
-            pi_tab[this.VertList.get(x)]=ret[1];
-            pred_tab[this.VertList.get(x)] =this.VertList.get(utilde.charAt(0));
-            if (debug) console.log("Adding "+x+" to M");
+            let ret = this.searchVertexMin(pi_tab, M, debug);
+            let utilde = ret[0];
+            let x = utilde.charAt(2);
+            pi_tab[this.VertList.get(x)] = ret[1];
+            pred_tab[this.VertList.get(x)] = this.VertList.get(utilde.charAt(0));
+            if (debug) document.write("Adding " + x + " to M");
             M.push(x);
-            if (debug) console.log(M);
-        }while(this.testOnEdgesWithM(M,debug))
-        console.log("Tableau PI="+pi_tab);
-        console.log("Pred_tab="+pred_tab);
+            if (debug) document.write(M);
+        } while (this.testOnEdgesWithM(M, debug))
+        document.write("Tableau PI=" + pi_tab);
+        document.write("<br/>");
+        document.write("Pred_tab=" + pred_tab);
+    }
+
+    //
+    //
+    //
+    existInUbar(vis, flow) {
+        let ret = false;
+        for (const [key, value] of this.EdgeList) {
+        }
+        return ret;
+    }
+    //
+    //
+    //
+    ford_fulkerson() {
+        let visited = new Map();
+        visited.set("S", "*");
+        let flowEdge = new Map();
+
+        for (const [key, value] of this.EdgeList) {
+            flowEdge.set(key, 0);
+        }
+        let stable;
+        do {
+            stable = 0;
+            let find = false;
+            for (const [key, value] of this.EdgeList) {
+                if ((visited.has(value.charAt(0))) && (!visited.has(value.charAt(3)))) {
+                    if (flowEdge.get(key) < this.EdgeListCost.get(key)) {
+                        visited.set(value.charAt(3), value.charAt(0));
+                        find = true;
+                        stable = 1;
+                    }
+                }
+            }
+
+
+            if (!find) {
+                for (const [key, value] of this.EdgeList) {
+                    if ((visited.has(value.charAt(3))) && (!visited.has(value.charAt(0)))) {
+                        if (flowEdge.get(key) > 0) {
+                            visited.set(value.charAt(0), -value.charAt(3));
+                            stable = 1;
+                        }
+                    }
+                }
+            }
+
+        } while (stable === 0);
+        console.log(visited);
     }
     // dfs(v)
     // Main DFS method
@@ -302,7 +388,7 @@ class Graph {
     // all the adjacent vertex of the vertex with which it is called
     DFSUtil(vert, visited) {
         visited[vert] = true;
-        console.log(vert);
+        document.write(vert);
 
         var get_neighbours = this.AdjList.get(vert);
 
@@ -317,35 +403,39 @@ class Graph {
     // Matrice d'adjacence 
     //
     adj_Matrix() {
-        for (var i = 0; i < this.noOfVertices; i++) {
-            for (var j = 0; j < this.noOfVertices; j++) {
-                var ch1 = (j === 0) ? "|" : "";
-                var ch2 = (j === this.noOfVertices - 1) ? "|" : "";
-                process.stdout.write(ch1 + this.AdjMatrix[i][j] + ch2);
-                if (j === this.noOfVertices - 1) console.log();
-            }
-        }
+        /*  for (var i = 0; i < this.noOfVertices; i++) {
+              for (var j = 0; j < this.noOfVertices; j++) {
+                  var ch1 = (j === 0) ? "|" : "";
+                  var ch2 = (j === this.noOfVertices - 1) ? "|" : "";
+                  if (debug) console.log(ch1 + this.AdjMatrix[i][j] + ch2);              
+                  if (j === this.noOfVertices - 1) document.write();
+              }
+          }
+          */
+        this.draw_Matrix("Adj", this.AdjMatrix, this.noOfVertices);
     }
     //
     // Matrice d'incidence
     //
     inc_Matrix() {
         var inc_matrix = Creer_Tableau(this.noOfVertices, this.cptEdge);
-
         for (var i = 0; i < this.cptEdge; i++) {
             var init = this.EdgeList.get(i).charAt(0);
             var end = this.EdgeList.get(i).charAt(2);
             inc_matrix[this.VertList.get(init)][i] = 1;
             inc_matrix[this.VertList.get(end)][i] = this.directed ? -1 : 1;
         }
+        /*
         for (var i = 0; i < this.noOfVertices; i++) {
             for (var j = 0; j < this.cptEdge; j++) {
                 var ch1 = (j === 0) ? "|" : "";
                 var ch2 = (j === this.cptEdge - 1) ? "|" : "";
-                process.stdout.write(ch1 + inc_matrix[i][j] + ch2);
-                if (j === this.cptEdge - 1) console.log();
+                document.write(ch1 + inc_matrix[i][j] + ch2);
+                if (j === this.cptEdge - 1) document.write();
             }
         }
+        */
+        this.draw_Matrix("Inc", inc_matrix, this.noOfVertices);
     }
     //
     //
@@ -368,7 +458,7 @@ Graph.prototype.toString = function graphToString() {
     }
     return "G([" + Array.from(this.VertList.keys()) + "],[" + ch + "])";
 };
-console.log("=========== SESSION 1 ===========");
+document.write("<h1> =========== SESSION 1 =========== </h1>");
 // Using the above implemented graph class
 var g = new Graph(6, true);
 var vertices = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -396,14 +486,14 @@ g.addEdge('C', 'F', 1);
 // D -> A E
 // E -> A D F C
 // F -> E C
-console.log("Adj_List");
+document.write("<h1>Adjency List</h1>");
 g.adj_List();
-console.log("Adj Matrix");
+document.write("<h1>Adjency Matrix</h1>");
 g.adj_Matrix();
-console.log("Inc Matrix");
+document.write("<h1>Incidence Matrix</h1>");
 g.inc_Matrix();
 
-console.log("=========== SESSION 3 ===========");
+document.write("<h1>=========== SESSION 3 ===========</h1>");
 
 var g2 = new Graph(10, false);
 var vertices2 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -423,8 +513,8 @@ g2.addEdge('3', '4', 1);
 g2.addEdge('5', '10', 1);
 g2.addEdge('9', '10', 1);
 let ecc = g2.bfs("1", false);
-console.log(g2.toString());
-console.log("ECC node 1=" + ecc);
+document.write(g2.toString());
+document.write("ECC node 1=" + ecc + "");
 
 
 var g3 = new Graph(8, false);
@@ -443,10 +533,10 @@ g3.addEdge('2', '3', 1);
 g3.addEdge('7', '3', 1);
 g3.addEdge('3', '4', 1);
 g3.addEdge('7', '8', 1);
-console.log(g3.toString());
+document.write(g3.toString());
 g3.radius_diameter(false);
 
-console.log("=========== SESSION 4 ===========");
+document.write("<h1>=========== SESSION 4 ===========</h1>");
 var g4 = new Graph(9, true);
 var vertices4 = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 // adding vertices
@@ -466,13 +556,13 @@ g4.addEdge('6', '7', 3);
 g4.addEdge('7', '8', 3);
 g4.addEdge('8', '5', -6);
 g4.addEdge('8', '9', 5);
-console.log(g4.toString());
-console.log("Algorithme de Bellman Ford");
+document.write(g4.toString());
+document.write("<h1>Algorithme de Bellman Ford</h1>");
 g4.bellman_ford("1", false);
 //
 //
 var g5 = new Graph(8, true);
-var vertices5 = ['s','1', '2', '3', '4', '5', '6', 't'];
+var vertices5 = ['s', '1', '2', '3', '4', '5', '6', 't'];
 // adding vertices
 for (var i = 0; i < vertices5.length; i++) {
     g5.addVertex(vertices5[i]);
@@ -490,14 +580,14 @@ g5.addEdge('5', '3', 4);
 g5.addEdge('6', '5', 2);
 g5.addEdge('6', 't', 1);
 g5.addEdge('t', '2', 5);
-console.log(g5.toString());
-console.log("Algorithme de Djikstra");
-g5.dijkstra("s",false);
+document.write(g5.toString());
+document.write("<h1>Algorithme de Djikstra</h1>");
+g5.dijkstra("s", false);
 
-console.log("=========== Exercices 1 SESSION 4 ===========");
+document.write("<h1>=========== Exercices 1 SESSION 4 ===========</h1>");
 
 var g7 = new Graph(8, true);
-var vertices7 = ['A', 'B', 'C', 'D', 'E', 'F','G','H'];
+var vertices7 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 // adding vertices
 for (var i = 0; i < vertices7.length; i++) {
     g7.addVertex(vertices7[i]);
@@ -547,12 +637,12 @@ g7.addEdge('H', 'F', 7);
 g7.addEdge('H', 'G', 12);
 g7.addEdge('G', 'H', 12);
 
-console.log(g7.toString());
-console.log("Algorithme de Djikstra");
+document.write(g7.toString());
+document.write("<h1>Algorithme de Djikstra</h1>");
 g7.dijkstra("A", false);
-console.log("Algorithme de Bellman Ford");
+document.write("<h1>Algorithme de Bellman Ford</h1>");
 g7.bellman_ford("A", false);
-console.log("=========== Exercices 3 SESSION 4 ===========");
+document.write("<h1>=========== Exercices 3 SESSION 4 ===========</h1>");
 var g6 = new Graph(6, true);
 var vertices6 = ['a', 'b', 'c', 'd', 'e', 'f'];
 // adding vertices
@@ -568,6 +658,29 @@ g6.addEdge('b', 'e', 1);
 g6.addEdge('c', 'b', 1);
 g6.addEdge('a', 'c', 1);
 
-console.log(g6.toString());
-console.log("Algorithme de Bellman Ford");
+document.write(g6.toString());
+document.write("<h1>Algorithme de Bellman Ford</h1>");
 g6.bellman_ford("a", false);
+document.write("<h1>=========== SESSION 5 ===========</h1>");
+var g8 = new Graph(6, true);
+var vertices8 = ['S', '2', '3', '5', '6', 'T'];
+// adding vertices
+for (var i = 0; i < vertices8.length; i++) {
+    g8.addVertex(vertices8[i]);
+}
+g8.addEdge('S', '2', 4);
+g8.addEdge('S', '5', 2);
+g8.addEdge('S', '6', 7);
+g8.addEdge('S', '3', 4);
+
+g8.addEdge('2', '3', 3);
+
+g8.addEdge('3', 'T', 8);
+
+g8.addEdge('5', 'T', 11);
+g8.addEdge('5', '3', 6);
+
+g8.addEdge('6', '5', 4);
+
+document.write(g8.toString());
+g8.ford_fulkerson();
