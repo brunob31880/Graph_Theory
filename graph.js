@@ -93,7 +93,6 @@ class Graph {
         document.write("<mo>[</mo>");
         document.write("<mtable>");
         for (let i = 0; i < n; i++) {
-            console.log("Ici " + n);
             this.add_Matrix_Line(mat[i]);
         }
         document.write("</mtable>");
@@ -327,20 +326,39 @@ class Graph {
         document.write("<br/>");
         document.write("Pred_tab=" + pred_tab);
     }
-
     //
     //
     //
-    existInUbar(vis, flow) {
-        let ret = false;
-        for (const [key, value] of this.EdgeList) {
+    minInChain(chain) {
+        let M = 1000;
+        let cost;
+        for (const [key, value] of chain) {
+            let edge = value + "-" + key;
+            cost = this.getCostOfEdge(edge);
+            console.log("Getting cost of " + edge + " =" + cost);
+            if (cost < M) M = cost;
         }
-        return ret;
+        console.log("Cost=" + cost);
     }
     //
     //
     //
-    ford_fulkerson() {
+    fillChainWith(visi) {
+        let chain = new Map();
+        chain.set("T", visi.get("T"));
+        let I = visi.get("T");
+        do {
+            console.log("Adding to Chain " + I + " " + visi.get(I));
+            chain.set(I, visi.get(I));
+            I = visi.get(I);
+        } while (I !== "S")
+        console.log("Sortie");
+        return chain;
+    }
+    //
+    // agorithme pour trouver une chaine augmentante
+    //
+    augmented_chain() {
         let visited = new Map();
         visited.set("S", "*");
         let flowEdge = new Map();
@@ -353,21 +371,23 @@ class Graph {
             stable = 0;
             let find = false;
             for (const [key, value] of this.EdgeList) {
-                if ((visited.has(value.charAt(0))) && (!visited.has(value.charAt(3)))) {
+                if ((visited.has(value.charAt(0))) && (!visited.has(value.charAt(2)))) {
+
                     if (flowEdge.get(key) < this.EdgeListCost.get(key)) {
-                        visited.set(value.charAt(3), value.charAt(0));
+
+                        visited.set(value.charAt(2), value.charAt(0));
+
                         find = true;
                         stable = 1;
                     }
                 }
             }
-
-
             if (!find) {
                 for (const [key, value] of this.EdgeList) {
-                    if ((visited.has(value.charAt(3))) && (!visited.has(value.charAt(0)))) {
+                    if ((visited.has(value.charAt(2))) && (!visited.has(value.charAt(0)))) {
                         if (flowEdge.get(key) > 0) {
-                            visited.set(value.charAt(0), -value.charAt(3));
+                            visited.set(value.charAt(0), -value.charAt(2));
+
                             stable = 1;
                         }
                     }
@@ -375,8 +395,10 @@ class Graph {
             }
 
         } while (stable === 0);
-        console.log(visited);
+         return  this.fillChainWith(visited);
     }
+
+    //
     // dfs(v)
     // Main DFS method
     dfs(startingNode) {
@@ -683,4 +705,4 @@ g8.addEdge('5', '3', 6);
 g8.addEdge('6', '5', 4);
 
 document.write(g8.toString());
-g8.ford_fulkerson();
+//g8.ford_fulkerson();
