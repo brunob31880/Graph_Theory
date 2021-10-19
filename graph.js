@@ -194,6 +194,15 @@ class Graph {
         }
         return -1;
     }
+     //
+    //
+    //
+    getIdOfEdge(edge) {
+        for (const [id, value] of this.EdgeList) {
+            if (edge === value) return id;
+        }
+        return -1;
+    }
     //
     //
     //
@@ -327,33 +336,91 @@ class Graph {
         document.write("Pred_tab=" + pred_tab);
     }
     //
+    // retourne 1 si un edge est dans la liste -1 s'il existe en inverse et 0 sinon
     //
+    getSignOfEdge(edgeIN,chain){
+        for (let i=0;i<chain.length; i++) {
+            let edge = chain[i];
+            if (edgeIN===edge) return 1;
+            else {
+                let I=edgeIN.charAt(0);
+                let T=edgeIN.charAt(2);
+                let invEdgeIN=T+"-"+I;
+                if (invEdgeIN===edge) return -1;
+            }
+        }
+        return 0;
+    }
+    //
+    // trouve le minimum de flow dans une change augmentante
     //
     minInChain(chain) {
-        let M = 1000;
+        if (chain.length===0) return 1000;
+        let E = 1000;
         let cost;
-        for (const [key, value] of chain) {
-            let edge = value + "-" + key;
+        for (let i=0;i<chain.length; i++) {
+            let edge = chain[i];
             cost = this.getCostOfEdge(edge);
             console.log("Getting cost of " + edge + " =" + cost);
-            if (cost < M) M = cost;
-        }
-        console.log("Cost=" + cost);
+            if (cost < E) E = cost;
+        }      
+        return E;
     }
     //
     //
     //
     fillChainWith(visi) {
-        let chain = new Map();
-        chain.set("T", visi.get("T"));
+        let chain =[];
+        chain.push(visi.get("T")+"-"+"T");
         let I = visi.get("T");
         do {
             console.log("Adding to Chain " + I + " " + visi.get(I));
-            chain.set(I, visi.get(I));
+            chain.push( visi.get(I)+"-"+I);
             I = visi.get(I);
         } while (I !== "S")
-        console.log("Sortie");
-        return chain;
+        return chain.reverse();
+    }
+    //
+    //
+    //
+    computeEpsilonFor(chain){
+        let EPLUS=[];
+        let EMOINS=[];
+        for (let i=0;i<chain.length; i++) {
+            let edge = chain[i];
+            let sign=this.getSignOfEdge(edge,chain);
+            if (sign===1) EPLUS.push(edge);
+            else if (sign===-1) EMOINS.push(edge);
+        }
+        let minPLUS=this.minInChain(EPLUS);
+        let minMOINS=this.minInChain(EMOINS);
+        let tabRET=[];
+        tabRET.push(EPLUS);
+        tabRET.push(EMOINS)
+        if (minPLUS<minMOINS) tabRET.push(minPLUS);
+        else tabRET.push(minMOINS);
+        return tabRET;
+    }
+    //
+    // Modifie le flow avec le tableau epsilon calculé plus haut
+    //
+    modifyFlowWithEpsilon(flow,tabEbsilon){
+        // pour ceux dans le "bon sens"
+        for (let i=0;i<tabEbsilon[0].length; i++) {
+            // trouve la clef dans les edge du edge en cours de traitement
+            let id=this.getIdOfEdge(tabEbsilon[0][i]);
+            let actual=flow.get(id);
+            flow.set(id,actual+tabEpsilon[2]);
+        }
+         // pour ceux dans le "mauvais sens"
+         for (let i=0;i<tabEbsilon[1].length; i++) {
+            // trouve la clef dans les edge du edge en cours de traitement
+            let I=tabEbsilon[1][i].charAt(0);
+            let T=tabEbsilon[1][i].charAt(2);
+            let id=this.getIdOfEdge(T+"-"+I);
+            let actual=flow.get(id);
+            flow.set(id,actual-tabEpsilon[2]);
+        }
     }
     //
     // agorithme pour trouver une chaine augmentante
@@ -397,7 +464,12 @@ class Graph {
         } while (stable === 0);
          return  this.fillChainWith(visited);
     }
+    //
+    //
+    //
+    ford_fulkerson(){
 
+    }
     //
     // dfs(v)
     // Main DFS method
@@ -705,4 +777,7 @@ g8.addEdge('5', '3', 6);
 g8.addEdge('6', '5', 4);
 
 document.write(g8.toString());
-//g8.ford_fulkerson();
+let tab=g8. augmented_chain();
+console.log (tab);
+console.log(g8.minInChain(tab));
+console.log(g8.computeEpsilonFor(tab)[2]);
