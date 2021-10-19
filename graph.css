@@ -1,0 +1,9 @@
+h2 {
+    color: rgb(0, 0, 0);
+    font: 700 16px Open Sans;
+    top: 0px;
+    margin: 0px;
+    padding: 5px;
+    text-transform: uppercase;
+    border-bottom: 2px solid rgb(136, 136, 136);
+}

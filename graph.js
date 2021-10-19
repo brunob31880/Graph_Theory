@@ -194,7 +194,7 @@ class Graph {
         }
         return -1;
     }
-     //
+    //
     //
     //
     getIdOfEdge(edge) {
@@ -338,15 +338,15 @@ class Graph {
     //
     // retourne 1 si un edge est dans la liste -1 s'il existe en inverse et 0 sinon
     //
-    getSignOfEdge(edgeIN,chain){
-        for (let i=0;i<chain.length; i++) {
+    getSignOfEdge(edgeIN, chain) {
+        for (let i = 0; i < chain.length; i++) {
             let edge = chain[i];
-            if (edgeIN===edge) return 1;
+            if (edgeIN === edge) return 1;
             else {
-                let I=edgeIN.charAt(0);
-                let T=edgeIN.charAt(2);
-                let invEdgeIN=T+"-"+I;
-                if (invEdgeIN===edge) return -1;
+                let I = edgeIN.charAt(0);
+                let T = edgeIN.charAt(2);
+                let invEdgeIN = T + "-" + I;
+                if (invEdgeIN === edge) return -1;
             }
         }
         return 0;
@@ -355,27 +355,31 @@ class Graph {
     // trouve le minimum de flow dans une change augmentante
     //
     minInChain(chain) {
-        if (chain.length===0) return 1000;
+        if (chain.length === 0) return 1000;
         let E = 1000;
         let cost;
-        for (let i=0;i<chain.length; i++) {
+        for (let i = 0; i < chain.length; i++) {
             let edge = chain[i];
             cost = this.getCostOfEdge(edge);
-            console.log("Getting cost of " + edge + " =" + cost);
+           // console.log("Getting cost of " + edge + " =" + cost);
             if (cost < E) E = cost;
-        }      
+        }
         return E;
     }
     //
     //
     //
     fillChainWith(visi) {
-        let chain =[];
-        chain.push(visi.get("T")+"-"+"T");
-        let I = visi.get("T");
+        let chain = [];
+        let arr = visi.keys();
+        let tabKeys = Array.from(arr);
+        let lastItem = tabKeys[tabKeys.length - 1];
+        console.log("Last=" + lastItem);
+        chain.push(visi.get(lastItem) + "-" + lastItem);
+        let I = visi.get(lastItem);
         do {
-            console.log("Adding to Chain " + I + " " + visi.get(I));
-            chain.push( visi.get(I)+"-"+I);
+         //   console.log("Adding to Chain " + I + " " + visi.get(I));
+            chain.push(visi.get(I) + "-" + I);
             I = visi.get(I);
         } while (I !== "S")
         return chain.reverse();
@@ -383,67 +387,62 @@ class Graph {
     //
     //
     //
-    computeEpsilonFor(chain){
-        let EPLUS=[];
-        let EMOINS=[];
-        for (let i=0;i<chain.length; i++) {
+    computeEpsilonFor(chain) {
+        let EPLUS = [];
+        let EMOINS = [];
+        for (let i = 0; i < chain.length; i++) {
             let edge = chain[i];
-            let sign=this.getSignOfEdge(edge,chain);
-            if (sign===1) EPLUS.push(edge);
-            else if (sign===-1) EMOINS.push(edge);
+            let sign = this.getSignOfEdge(edge, chain);
+            if (sign === 1) EPLUS.push(edge);
+            else if (sign === -1) EMOINS.push(edge);
         }
-        let minPLUS=this.minInChain(EPLUS);
-        let minMOINS=this.minInChain(EMOINS);
-        let tabRET=[];
+        let minPLUS = this.minInChain(EPLUS);
+        let minMOINS = this.minInChain(EMOINS);
+        let tabRET = [];
         tabRET.push(EPLUS);
         tabRET.push(EMOINS)
-        if (minPLUS<minMOINS) tabRET.push(minPLUS);
+        if (minPLUS < minMOINS) tabRET.push(minPLUS);
         else tabRET.push(minMOINS);
         return tabRET;
     }
     //
     // Modifie le flow avec le tableau epsilon calculé plus haut
     //
-    modifyFlowWithEpsilon(flow,tabEbsilon){
+    modifyFlowWithEpsilon(flow, tabEpsilon) {
         // pour ceux dans le "bon sens"
-        for (let i=0;i<tabEbsilon[0].length; i++) {
+        for (let i = 0; i < tabEpsilon[0].length; i++) {
             // trouve la clef dans les edge du edge en cours de traitement
-            let id=this.getIdOfEdge(tabEbsilon[0][i]);
-            let actual=flow.get(id);
-            flow.set(id,actual+tabEpsilon[2]);
+            let id = this.getIdOfEdge(tabEpsilon[0][i]);
+            let actual = flow.get(id);
+          //  console.log("Setting "+id+" to "+(parseInt(actual) + parseInt(tabEpsilon[2])));
+            flow.set(id, (parseInt(actual) + parseInt(tabEpsilon[2])));
         }
-         // pour ceux dans le "mauvais sens"
-         for (let i=0;i<tabEbsilon[1].length; i++) {
+        // pour ceux dans le "mauvais sens"
+        for (let i = 0; i < tabEpsilon[1].length; i++) {
             // trouve la clef dans les edge du edge en cours de traitement
-            let I=tabEbsilon[1][i].charAt(0);
-            let T=tabEbsilon[1][i].charAt(2);
-            let id=this.getIdOfEdge(T+"-"+I);
-            let actual=flow.get(id);
-            flow.set(id,actual-tabEpsilon[2]);
+            let I = tabEpsilon[1][i].charAt(0);
+            let T = tabEpsilon[1][i].charAt(2);
+            let id = this.getIdOfEdge(T + "-" + I);
+            let actual = flow.get(id);
+            flow.set(id, (parseInt(actual) - parseInt(tabEpsilon[2])));
         }
     }
     //
     // agorithme pour trouver une chaine augmentante
     //
-    augmented_chain() {
+    augmented_chain(flowEdge) {
         let visited = new Map();
         visited.set("S", "*");
-        let flowEdge = new Map();
 
-        for (const [key, value] of this.EdgeList) {
-            flowEdge.set(key, 0);
-        }
+        
         let stable;
         do {
             stable = 0;
             let find = false;
             for (const [key, value] of this.EdgeList) {
                 if ((visited.has(value.charAt(0))) && (!visited.has(value.charAt(2)))) {
-
                     if (flowEdge.get(key) < this.EdgeListCost.get(key)) {
-
                         visited.set(value.charAt(2), value.charAt(0));
-
                         find = true;
                         stable = 1;
                     }
@@ -454,21 +453,60 @@ class Graph {
                     if ((visited.has(value.charAt(2))) && (!visited.has(value.charAt(0)))) {
                         if (flowEdge.get(key) > 0) {
                             visited.set(value.charAt(0), -value.charAt(2));
-
                             stable = 1;
                         }
                     }
                 }
             }
-
         } while (stable === 0);
-         return  this.fillChainWith(visited);
+        return this.fillChainWith(visited);
     }
     //
     //
     //
-    ford_fulkerson(){
+    hasTInside(tab){
+        for (let i=0;i<tab.length;i++) {
+            if (tab[i].indexOf("T")!==-1) return 1;
+        }
+        return 0;
+    }
+    //
+    // Affiche le flow
+    //
+    showFlow(flow){
+        document.write("<h2>==== FLOW ====</h2>");
+        
+        for (const [key, value] of flow) {
+            document.write(key+"=> (pred) "+value+" edge=[ "+this.EdgeList.get(key)+"] cost=("+this.EdgeListCost.get(key)+")");
+            document.write("<br/>");
+        }
+    }
+    //
+    // Algorithme de ford fulkerson
+    //
+    ford_fulkerson() {
+        let flowEdge = new Map();
+        let filled;
+       // let cpt=0;
+        for (const [key, value] of this.EdgeList) {
+            //console.log("Setting "+key+" at 0");
+            flowEdge.set(key,0);
+        }
+        console.log("Init Flow ");
+        this.showFlow(flowEdge);
 
+        do {
+         //   cpt++;
+         //   console.log("CPT="+cpt);
+            filled = this.augmented_chain(flowEdge);
+            document.write("Augmented Chain "+filled);
+            document.write("<br/>");
+            let tab=this.computeEpsilonFor(filled);   
+            document.write("Direct="+tab[0]+" Indirect="+tab[1]+" Mini="+tab[2]);  
+            document.write("<br/>");     
+            this.modifyFlowWithEpsilon(flowEdge,tab);
+            this.showFlow(flowEdge);
+        } while (this.hasTInside(filled)===1 )//&& cpt<3)
     }
     //
     // dfs(v)
@@ -775,9 +813,11 @@ g8.addEdge('5', 'T', 11);
 g8.addEdge('5', '3', 6);
 
 g8.addEdge('6', '5', 4);
-
+document.write("<h1>Algorithme de Ford fulkerson</h1>");
 document.write(g8.toString());
-let tab=g8. augmented_chain();
-console.log (tab);
-console.log(g8.minInChain(tab));
-console.log(g8.computeEpsilonFor(tab)[2]);
+document.write("<br/>");
+//let tab = g8.augmented_chain(flowEdge);
+//console.log(tab);
+//console.log(g8.minInChain(tab));
+//console.log(g8.computeEpsilonFor(tab)[2]);
+g8.ford_fulkerson();
