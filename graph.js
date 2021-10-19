@@ -361,7 +361,7 @@ class Graph {
         for (let i = 0; i < chain.length; i++) {
             let edge = chain[i];
             cost = this.getCostOfEdge(edge);
-           // console.log("Getting cost of " + edge + " =" + cost);
+            // console.log("Getting cost of " + edge + " =" + cost);
             if (cost < E) E = cost;
         }
         return E;
@@ -371,14 +371,19 @@ class Graph {
     //
     fillChainWith(visi) {
         let chain = [];
-        let arr = visi.keys();
-        let tabKeys = Array.from(arr);
-        let lastItem = tabKeys[tabKeys.length - 1];
+        let lastItem;
+        if (visi.has("T")) lastItem = "T";
+        else {
+            let arr = visi.keys();
+            let tabKeys = Array.from(arr);
+            lastItem = tabKeys[tabKeys.length - 1];
+        }
+
         console.log("Last=" + lastItem);
         chain.push(visi.get(lastItem) + "-" + lastItem);
         let I = visi.get(lastItem);
         do {
-         //   console.log("Adding to Chain " + I + " " + visi.get(I));
+            //   console.log("Adding to Chain " + I + " " + visi.get(I));
             chain.push(visi.get(I) + "-" + I);
             I = visi.get(I);
         } while (I !== "S")
@@ -414,7 +419,7 @@ class Graph {
             // trouve la clef dans les edge du edge en cours de traitement
             let id = this.getIdOfEdge(tabEpsilon[0][i]);
             let actual = flow.get(id);
-          //  console.log("Setting "+id+" to "+(parseInt(actual) + parseInt(tabEpsilon[2])));
+            console.log("Setting (Positive) " + id + " to " + (parseInt(actual) + parseInt(tabEpsilon[2])));
             flow.set(id, (parseInt(actual) + parseInt(tabEpsilon[2])));
         }
         // pour ceux dans le "mauvais sens"
@@ -424,8 +429,37 @@ class Graph {
             let T = tabEpsilon[1][i].charAt(2);
             let id = this.getIdOfEdge(T + "-" + I);
             let actual = flow.get(id);
+            console.log("Setting (Negative) " + id + " to " + (parseInt(actual) - parseInt(tabEpsilon[2])));
             flow.set(id, (parseInt(actual) - parseInt(tabEpsilon[2])));
         }
+    }
+    //
+    //
+    existInEdge(visited, flowEdge) {
+        let find = false;
+        for (const [key, value] of this.EdgeList) {
+            if ((visited.has(value.charAt(0))) && (!visited.has(value.charAt(2)))) {
+                if (flowEdge.get(key) < this.EdgeListCost.get(key)) {
+                    visited.set(value.charAt(2), value.charAt(0));
+                    find = true;
+                }
+            }
+        }
+        return find;
+    }
+    //
+    //
+    existInInverseEdge(visited, flowEdge) {
+        let find = false;
+        for (const [key, value] of this.EdgeList) {
+            if ((visited.has(value.charAt(2))) && (!visited.has(value.charAt(0)))) {
+                if (flowEdge.get(key) > 0) {
+                    visited.set(value.charAt(0), -value.charAt(2));
+                    find = true;
+                }
+            }
+        }
+        return find;
     }
     //
     // agorithme pour trouver une chaine augmentante
@@ -433,51 +467,66 @@ class Graph {
     augmented_chain(flowEdge) {
         let visited = new Map();
         visited.set("S", "*");
-
-        
         let stable;
+        let cpt = 0;
         do {
             stable = 0;
             let find = false;
             for (const [key, value] of this.EdgeList) {
+                document.write("Try " + value.charAt(0) + "-" + value.charAt(2) + " cond=" + ((visited.has(value.charAt(0))) && (!visited.has(value.charAt(2)))));
+                document.write("<br/>");
                 if ((visited.has(value.charAt(0))) && (!visited.has(value.charAt(2)))) {
+                    document.write(flowEdge.get(key) + "-" + this.EdgeListCost.get(key));
+                    document.write("<br/>");
                     if (flowEdge.get(key) < this.EdgeListCost.get(key)) {
+                        document.write("Visited <= M(" + value.charAt(2) + ")= " + value.charAt(0));
+                        document.write("<br/>");
                         visited.set(value.charAt(2), value.charAt(0));
                         find = true;
                         stable = 1;
                     }
                 }
+
             }
             if (!find) {
                 for (const [key, value] of this.EdgeList) {
                     if ((visited.has(value.charAt(2))) && (!visited.has(value.charAt(0)))) {
                         if (flowEdge.get(key) > 0) {
+                            document.write("Visited Ind <= M(" + value.charAt(0) + ")= -" + value.charAt(2));
+                            document.write("<br/>");
                             visited.set(value.charAt(0), -value.charAt(2));
                             stable = 1;
                         }
                     }
                 }
             }
-        } while (stable === 0);
+
+            cpt = cpt + 1;
+
+        } while (stable !== 0);
+        for (const [key, value] of visited) {
+            console.log(key + " " + value);
+        }
         return this.fillChainWith(visited);
     }
+
     //
     //
     //
-    hasTInside(tab){
-        for (let i=0;i<tab.length;i++) {
-            if (tab[i].indexOf("T")!==-1) return 1;
+    hasTInside(tab) {
+        for (let i = 0; i < tab.length; i++) {
+            if (tab[i].indexOf("T") !== -1) return 1;
         }
         return 0;
     }
     //
     // Affiche le flow
     //
-    showFlow(flow){
-        document.write("<h2>==== FLOW ====</h2>");
-        
+    showFlow(flow) {
+        document.write("<h3>FLOW</h3>");
+
         for (const [key, value] of flow) {
-            document.write(key+"=> (pred) "+value+" edge=[ "+this.EdgeList.get(key)+"] cost=("+this.EdgeListCost.get(key)+")");
+            document.write(key + "=> flow=(" + value + ") edge=[" + this.EdgeList.get(key) + "] cost=(" + this.EdgeListCost.get(key) + ")");
             document.write("<br/>");
         }
     }
@@ -487,26 +536,29 @@ class Graph {
     ford_fulkerson() {
         let flowEdge = new Map();
         let filled;
-       // let cpt=0;
+        let cpt = 0;
         for (const [key, value] of this.EdgeList) {
             //console.log("Setting "+key+" at 0");
-            flowEdge.set(key,0);
+            flowEdge.set(key, 0);
         }
-        console.log("Init Flow ");
+        document.write("<h2> Initialisation </h2>");
         this.showFlow(flowEdge);
 
         do {
-         //   cpt++;
-         //   console.log("CPT="+cpt);
+            cpt++;
+            //   console.log("CPT="+cpt);
+            document.write("<h2> Traitment n°" + cpt + " </h2>");
             filled = this.augmented_chain(flowEdge);
-            document.write("Augmented Chain "+filled);
+            document.write("Augmented Chain " + filled);
             document.write("<br/>");
-            let tab=this.computeEpsilonFor(filled);   
-            document.write("Direct="+tab[0]+" Indirect="+tab[1]+" Mini="+tab[2]);  
-            document.write("<br/>");     
-            this.modifyFlowWithEpsilon(flowEdge,tab);
+            let tab = this.computeEpsilonFor(filled);
+            document.write("Direct=" + tab[0] + " Indirect=" + tab[1] + " Mini=" + tab[2]);
+            document.write("<br/>");
+            this.modifyFlowWithEpsilon(flowEdge, tab);
             this.showFlow(flowEdge);
-        } while (this.hasTInside(filled)===1 )//&& cpt<3)
+
+        } while (this.hasTInside(filled) === 1)//&& cpt<3)
+
     }
     //
     // dfs(v)
@@ -590,7 +642,7 @@ Graph.prototype.toString = function graphToString() {
     }
     return "G([" + Array.from(this.VertList.keys()) + "],[" + ch + "])";
 };
-document.write("<h1> =========== SESSION 1 =========== </h1>");
+document.write("<h1>SESSION 1</h1>");
 // Using the above implemented graph class
 var g = new Graph(6, true);
 var vertices = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -625,7 +677,7 @@ g.adj_Matrix();
 document.write("<h1>Incidence Matrix</h1>");
 g.inc_Matrix();
 
-document.write("<h1>=========== SESSION 3 ===========</h1>");
+document.write("<h1>SESSION 3</h1>");
 
 var g2 = new Graph(10, false);
 var vertices2 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -646,8 +698,9 @@ g2.addEdge('5', '10', 1);
 g2.addEdge('9', '10', 1);
 let ecc = g2.bfs("1", false);
 document.write(g2.toString());
+document.write("<br/>");
 document.write("ECC node 1=" + ecc + "");
-
+document.write("<br/>");
 
 var g3 = new Graph(8, false);
 var vertices3 = ['1', '2', '3', '4', '5', '6', '7', '8'];
@@ -666,9 +719,10 @@ g3.addEdge('7', '3', 1);
 g3.addEdge('3', '4', 1);
 g3.addEdge('7', '8', 1);
 document.write(g3.toString());
+document.write("<br/>");
 g3.radius_diameter(false);
 
-document.write("<h1>=========== SESSION 4 ===========</h1>");
+document.write("<h1>SESSION 4</h1>");
 var g4 = new Graph(9, true);
 var vertices4 = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 // adding vertices
@@ -716,7 +770,7 @@ document.write(g5.toString());
 document.write("<h1>Algorithme de Djikstra</h1>");
 g5.dijkstra("s", false);
 
-document.write("<h1>=========== Exercices 1 SESSION 4 ===========</h1>");
+document.write("<h1>Exercices 1 SESSION 4</h1>");
 
 var g7 = new Graph(8, true);
 var vertices7 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -774,7 +828,7 @@ document.write("<h1>Algorithme de Djikstra</h1>");
 g7.dijkstra("A", false);
 document.write("<h1>Algorithme de Bellman Ford</h1>");
 g7.bellman_ford("A", false);
-document.write("<h1>=========== Exercices 3 SESSION 4 ===========</h1>");
+document.write("<h1>Exercices 3 SESSION 4</h1>");
 var g6 = new Graph(6, true);
 var vertices6 = ['a', 'b', 'c', 'd', 'e', 'f'];
 // adding vertices
@@ -793,7 +847,7 @@ g6.addEdge('a', 'c', 1);
 document.write(g6.toString());
 document.write("<h1>Algorithme de Bellman Ford</h1>");
 g6.bellman_ford("a", false);
-document.write("<h1>=========== SESSION 5 ===========</h1>");
+document.write("<h1>SESSION 5</h1>");
 var g8 = new Graph(6, true);
 var vertices8 = ['S', '2', '3', '5', '6', 'T'];
 // adding vertices
@@ -816,8 +870,13 @@ g8.addEdge('6', '5', 4);
 document.write("<h1>Algorithme de Ford fulkerson</h1>");
 document.write(g8.toString());
 document.write("<br/>");
-//let tab = g8.augmented_chain(flowEdge);
-//console.log(tab);
+let flowEdge = new Map();
+for (const [key, value] of g8.EdgeList) {
+    //console.log("Setting "+key+" at 0");
+    flowEdge.set(key, 0);
+}
+let tab = g8.augmented_chain(flowEdge);
+console.log(tab);
 //console.log(g8.minInChain(tab));
 //console.log(g8.computeEpsilonFor(tab)[2]);
-g8.ford_fulkerson();
+//g8.ford_fulkerson();
