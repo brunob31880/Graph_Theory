@@ -504,11 +504,13 @@ class Graph {
     //
     showFlow(flow) {
         document.write("<h3>FLOW</h3>");
-
+        let flow_total=0;
         for (const [key, value] of flow) {
             document.write(key + "=> flow=(" + value + ") edge=[" + this.EdgeList.get(key) + "] cost=(" + this.EdgeListCost.get(key) + ")");
+            if (this.EdgeList.get(key).charAt(2)==="T") flow_total+=parseInt(flow.get(key));
             document.write("<br/>");
         }
+        document.write("TOTAL FLOW="+flow_total);
     }
     //
     // Algorithme de ford fulkerson
