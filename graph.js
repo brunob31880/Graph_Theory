@@ -201,6 +201,7 @@ class Graph {
         for (const [id, value] of this.EdgeList) {
             if (edge === value) return id;
         }
+        console.log("can't find "+edge);
         return -1;
     }
     //
@@ -338,9 +339,11 @@ class Graph {
     //
     // retourne 1 si un edge est dans la liste -1 s'il existe en inverse et 0 sinon
     //
-    getSignOfEdge(edgeIN, chain) {
-        for (let i = 0; i < chain.length; i++) {
-            let edge = chain[i];
+    getSignOfEdge(edgeIN) {
+        let tab=Array.from(this.EdgeList.values());
+       
+        for (let i = 0; i < tab.length; i++) {
+            let edge = tab[i];
             if (edgeIN === edge) return 1;
             else {
                 let I = edgeIN.charAt(0);
@@ -354,14 +357,16 @@ class Graph {
     //
     // trouve le minimum de flow dans une change augmentante
     //
-    minInChain(chain) {
+    minInChain(chain, flow) {
         if (chain.length === 0) return 1000;
         let E = 1000;
         let cost;
         for (let i = 0; i < chain.length; i++) {
             let edge = chain[i];
-            cost = this.getCostOfEdge(edge);
-            // console.log("Getting cost of " + edge + " =" + cost);
+            let ind = this.getIdOfEdge(edge);
+          //  document.write(ind + " " + flow.get(ind) + "/" + this.getCostOfEdge(edge));
+          //  document.write("<br/>");
+            cost = this.getCostOfEdge(edge) - flow.get(ind);
             if (cost < E) E = cost;
         }
         return E;
@@ -370,7 +375,7 @@ class Graph {
     //
     //
     fillChainWith(visi) {
-        
+
         let chain = [];
         let lastItem;
         if (visi.has("T")) lastItem = "T";
@@ -383,15 +388,15 @@ class Graph {
         console.log("Last=" + lastItem);
         chain.push(visi.get(lastItem) + "-" + lastItem);
         let I = visi.get(lastItem);
-        let cpt=0;
-        let stop=false;
+        let cpt = 0;
+        let stop = false;
         do {
             //   console.log("Adding to Chain " + I + " " + visi.get(I));
             if (visi.get(I) && I) {
                 chain.push(visi.get(I) + "-" + I);
                 I = visi.get(I);
             }
-            else stop=true;
+            else stop = true;
             cpt++;
         } while ((I !== "S") && (!stop))
         return chain.reverse();
@@ -399,17 +404,17 @@ class Graph {
     //
     //
     //
-    computeEpsilonFor(chain) {
+    computeEpsilonFor(chain, flow) {
         let EPLUS = [];
         let EMOINS = [];
         for (let i = 0; i < chain.length; i++) {
             let edge = chain[i];
-            let sign = this.getSignOfEdge(edge, chain);
+            let sign = this.getSignOfEdge(edge);
             if (sign === 1) EPLUS.push(edge);
             else if (sign === -1) EMOINS.push(edge);
         }
-        let minPLUS = this.minInChain(EPLUS);
-        let minMOINS = this.minInChain(EMOINS);
+        let minPLUS = this.minInChain(EPLUS, flow);
+        let minMOINS = this.minInChain(EMOINS, flow);
         let tabRET = [];
         tabRET.push(EPLUS);
         tabRET.push(EMOINS)
@@ -426,7 +431,7 @@ class Graph {
             // trouve la clef dans les edge du edge en cours de traitement
             let id = this.getIdOfEdge(tabEpsilon[0][i]);
             let actual = flow.get(id);
-            console.log("Setting (Positive) " + id + " to " + (parseInt(actual) + parseInt(tabEpsilon[2])));
+         //   console.log("Setting (Positive) " + id + " to " + (parseInt(actual) + parseInt(tabEpsilon[2])));
             flow.set(id, (parseInt(actual) + parseInt(tabEpsilon[2])));
         }
         // pour ceux dans le "mauvais sens"
@@ -436,16 +441,19 @@ class Graph {
             let T = tabEpsilon[1][i].charAt(2);
             let id = this.getIdOfEdge(T + "-" + I);
             let actual = flow.get(id);
-            console.log("Setting (Negative) " + id + " to " + (parseInt(actual) - parseInt(tabEpsilon[2])));
+         //   console.log("Setting (Negative) " + id + " to " + (parseInt(actual) - parseInt(tabEpsilon[2])));
             flow.set(id, (parseInt(actual) - parseInt(tabEpsilon[2])));
         }
     }
-    
+    isNumber(value) {
+        return typeof value === 'number' && isFinite(value);
+    }
     //
     // agorithme pour trouver une chaine augmentante
     //
     augmented_chain(flowEdge) {
         let visited = new Map();
+        let showv = [];
         visited.set("S", "*");
         let stable;
         let cpt = 0;
@@ -453,28 +461,26 @@ class Graph {
             stable = 0;
             let find = false;
             for (const [key, value] of this.EdgeList) {
-               // document.write("Try " + value.charAt(0) + "-" + value.charAt(2) + " cond=" + ((visited.has(value.charAt(0))) && (!visited.has(value.charAt(2)))));
-               // document.write("<br/>");
+
                 if ((visited.has(value.charAt(0))) && (!visited.has(value.charAt(2)))) {
-                    // document.write(flowEdge.get(key) + "-" + this.EdgeListCost.get(key));
-                    // document.write("<br/>");
                     if (flowEdge.get(key) < this.EdgeListCost.get(key)) {
-                        // document.write("Visited <= M(" + value.charAt(2) + ")= " + value.charAt(0));
-                        // document.write("<br/>");
+                        if (showv.indexOf(value.charAt(0))===-1) showv.push(value.charAt(0));
+                        document.write("Visiting direct " + value.charAt(0));
+                            document.write("</br>");
                         visited.set(value.charAt(2), value.charAt(0));
                         find = true;
                         stable = 1;
                     }
                 }
-
             }
             if (!find) {
                 for (const [key, value] of this.EdgeList) {
                     if ((visited.has(value.charAt(2))) && (!visited.has(value.charAt(0)))) {
                         if (flowEdge.get(key) > 0) {
-                           // document.write("Visited Ind <= M(" + value.charAt(0) + ")= -" + value.charAt(2));
-                           // document.write("<br/>");
-                            visited.set(value.charAt(0), -value.charAt(2));
+                            if (showv.indexOf(value.charAt(0))===-1) showv.push(value.charAt(0));
+                            document.write("Visiting inv " + value.charAt(0));
+                            document.write("</br>");
+                            visited.set(value.charAt(0), value.charAt(2));
                             stable = 1;
                         }
                     }
@@ -484,9 +490,12 @@ class Graph {
             cpt = cpt + 1;
 
         } while (stable !== 0);
-        for (const [key, value] of visited) {
-            console.log(key + " " + value);
+        document.write("<h3>Visited</h3>");
+        for (let j=0;j< showv.length;j++) {
+            document.write(showv[j]);
+            document.write("<br/>");
         }
+        document.write("<br/>");
         return this.fillChainWith(visited);
     }
 
@@ -504,13 +513,13 @@ class Graph {
     //
     showFlow(flow) {
         document.write("<h3>FLOW</h3>");
-        let flow_total=0;
+        let flow_total = 0;
         for (const [key, value] of flow) {
             document.write(key + "=> flow=(" + value + ") edge=[" + this.EdgeList.get(key) + "] cost=(" + this.EdgeListCost.get(key) + ")");
-            if (this.EdgeList.get(key).charAt(2)==="T") flow_total+=parseInt(flow.get(key));
+            if (this.EdgeList.get(key).charAt(2) === "T") flow_total += parseInt(flow.get(key));
             document.write("<br/>");
         }
-        document.write("TOTAL FLOW="+flow_total);
+        document.write("TOTAL FLOW=" + flow_total);
     }
     //
     // Algorithme de ford fulkerson
@@ -534,13 +543,13 @@ class Graph {
             document.write("Augmented Chain " + filled);
             document.write("<br/>");
             if ((this.hasTInside(filled) === 1)) {
-                let tab = this.computeEpsilonFor(filled);
+                let tab = this.computeEpsilonFor(filled, flowEdge);
                 document.write("Direct=" + tab[0] + " Indirect=" + tab[1] + " Mini=" + tab[2]);
                 document.write("<br/>");
                 this.modifyFlowWithEpsilon(flowEdge, tab);
                 this.showFlow(flowEdge);
             }
-        } while (this.hasTInside(filled) === 1)//&& cpt<3)
+        } while ((this.hasTInside(filled) === 1))
 
     }
     //
@@ -853,15 +862,39 @@ g8.addEdge('6', '5', 4);
 document.write("<h1>Algorithme de Ford fulkerson</h1>");
 document.write(g8.toString());
 document.write("<br/>");
-/*
-let flowEdge = new Map();
-for (const [key, value] of g8.EdgeList) {
-    //console.log("Setting "+key+" at 0");
-    flowEdge.set(key, 0);
-}
-let tab = g8.augmented_chain(flowEdge);
-console.log(tab);
-*/
-//console.log(g8.minInChain(tab));
-//console.log(g8.computeEpsilonFor(tab)[2]);
+
 g8.ford_fulkerson();
+
+document.write("<h1>Exercice 2 SESSION 5</h1>");
+var g9 = new Graph(8, true);
+var vertices9 = ['S', '1', '2', '3', '4', '5', '6', 'T'];
+// adding vertices
+for (var i = 0; i < vertices9.length; i++) {
+    g9.addVertex(vertices9[i]);
+}
+g9.addEdge('S', '1', 2);
+g9.addEdge('S', '2', 5);
+g9.addEdge('S', '3', 5);
+
+g9.addEdge('1', '5', 3);
+g9.addEdge('1', '4', 1);
+
+g9.addEdge('2', '5', 2);
+g9.addEdge('2', '4', 2);
+g9.addEdge('2', '6', 4);
+
+g9.addEdge('3', '4', 2);
+g9.addEdge('3', '6', 2);
+
+g9.addEdge('4', '5', 2);
+g9.addEdge('4', '6', 1);
+
+g9.addEdge('5', 'T', 5);
+
+g9.addEdge('6', 'T', 7);
+
+document.write("<h1>Algorithme de Ford fulkerson</h1>");
+document.write(g9.toString());
+document.write("<br/>");
+
+g9.ford_fulkerson();
