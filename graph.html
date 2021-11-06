@@ -18,7 +18,7 @@
 
 <body>
     <div class="graph">
-        <canvas id="cv" width="1200" height="400"></canvas>
+        <canvas id="cv" width="1200" height="600"></canvas>
         <button id="eff">Undo</button>
     </div>
     <script>
@@ -48,7 +48,10 @@
         }
 
         var draw_edge = (edges, ctx) => {
-            edges.forEach(([x, y, z, t]) => {
+            edges.forEach(([x, y, z, t, weight]) => {
+                ctx.fillStyle = "white";
+                ctx.font = "20px Verdana";
+                ctx.fillText("[" + weight + "]", (x + z) / 2 - 5, (y + t) / 2 - 5);
                 ctx.beginPath()
                 ctx.strokeStyle = "white"
                 ctx.lineWidth = 5;
@@ -92,35 +95,55 @@
                 draw_vertex(this.vertex, this.ctx);
             },
             cv(e) {
-                // Nouveau 
-                let actual = [e.clientX - this.rect.left, e.clientY - this.rect.top, "black"];
-                let tab = this.vertex.filter(e => dist(actual, e) < 100);
-                if (tab.length > 0) {
-                    console.log("Find " + tab[0]);
-                    let ind = this.vertex.indexOf(tab[0]);
-                    // Savoir si déjà une selection 
-                    let selec = this.vertex.filter(e => e[2] === "red");
-                    if (selec.length > 0) {
-                        console.log("Already selected");
-                        let ind2 = this.vertex.indexOf(selec[0]);
-                        this.vertex.forEach(e => e[2] = "black");
-                        let edge = [this.vertex[ind2][0], this.vertex[ind2][1], this.vertex[ind][0], this.vertex[ind][1], 1];
-                        this.edges.push(edge);
-                    }
-                    else {
-                        console.log("First selected");
-                        this.vertex[ind][2] = "red";
+                if (event.shiftKey || event.altKey) {
+                    let actual = [e.clientX - this.rect.left, e.clientY - this.rect.top];
+                    let tab = this.edges.filter(([x, y, z, t]) => {
+                        let center = [(x + z) / 2, (y + t) / 2];
+                        console.log("actual=" + actual + " center " + center);
+                        return dist(actual, center) < 100
+                    });
+                    if (tab.length > 0) {
+                        console.log("la");
+                        let ind = this.edges.indexOf(tab[0]);
+                        let w = this.edges[ind][4];
+                        this.edges[ind][4] = event.shiftKey ? w + 1 : w - 1;
+                        effacer(cv);
+                        draw_edge(this.edges, this.ctx);
+                        draw_vertex(this.vertex, this.ctx);
                     }
                 }
                 else {
-                    this.index++;
-                    // Nom du vertex
-                    actual.push(this.index);
-                    this.vertex.push(actual);
+                    // Nouveau 
+                    let actual = [e.clientX - this.rect.left, e.clientY - this.rect.top, "black"];
+                    let tab = this.vertex.filter(e => dist(actual, e) < 100);
+                    if (tab.length > 0) {
+                        console.log("Find " + tab[0]);
+                        let ind = this.vertex.indexOf(tab[0]);
+                        // Savoir si déjà une selection 
+                        let selec = this.vertex.filter(e => e[2] === "red");
+                        if (selec.length > 0) {
+                            console.log("Already selected");
+                            let ind2 = this.vertex.indexOf(selec[0]);
+                            this.vertex.forEach(e => e[2] = "black");
+                            let edge = [this.vertex[ind2][0], this.vertex[ind2][1], this.vertex[ind][0], this.vertex[ind][1], 1];
+                            this.edges.push(edge);
+                        }
+                        else {
+                            console.log("First selected");
+                            this.vertex[ind][2] = "red";
+                        }
+                    }
+                    else {
+                        this.index++;
+                        // Nom du vertex
+                        actual.push(this.index);
+                        this.vertex.push(actual);
+                    }
+                    effacer(cv);
+                    draw_edge(this.edges, this.ctx);
+                    draw_vertex(this.vertex, this.ctx);
                 }
-                effacer(cv);
-                draw_edge(this.edges, this.ctx);
-                draw_vertex(this.vertex, this.ctx);
+
             },
         }).init();
     </script>
