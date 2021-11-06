@@ -12,9 +12,7 @@ function Creer_Tableau(largeur, longueur) {
             monTableau[i][j] = 0;
         }
     }
-
     return monTableau;
-
 }
 // create a graph class
 class Graph {
