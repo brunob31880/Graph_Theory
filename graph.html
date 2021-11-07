@@ -22,6 +22,8 @@
         <button id="eff">Undo</button>
     </div>
     <script>
+        // plus de popup menu sur clic droit
+        document.addEventListener('contextmenu', event => event.preventDefault());
         var effacer = (cv) => cv.getContext("2d").clearRect(0, 0, cv.width, cv.height)
         var draw_vertex = (pts, ctx) => {
             //console.log("PTS="+pts);      
@@ -68,12 +70,18 @@
             init() {
                 console.log("Initialisation");
                 [cv, eff].forEach(e => e.addEventListener('click', this))
+                cv.addEventListener('mousedown', this.handleMouseDown.bind(this));
             },
             index: 0,
             ctx: cv.getContext("2d"),
             rect: cv.getBoundingClientRect(),
             edges: [],
             vertex: [],
+            handleMouseDown(e) {
+                console.log("ici "+e.button);
+                let actual = [e.clientX - this.rect.left, e.clientY - this.rect.top, "black"];
+                let tab = this.vertex.filter(e => dist(actual, e) < 100);
+            },
             handleEvent(e) {
                 this[e.target.id](e);
             },
@@ -95,6 +103,7 @@
                 draw_vertex(this.vertex, this.ctx);
             },
             cv(e) {
+
                 if (event.shiftKey || event.altKey) {
                     let actual = [e.clientX - this.rect.left, e.clientY - this.rect.top];
                     let tab = this.edges.filter(([x, y, z, t]) => {
@@ -103,7 +112,6 @@
                         return dist(actual, center) < 100
                     });
                     if (tab.length > 0) {
-                        console.log("la");
                         let ind = this.edges.indexOf(tab[0]);
                         let w = this.edges[ind][4];
                         this.edges[ind][4] = event.shiftKey ? w + 1 : w - 1;
@@ -143,7 +151,6 @@
                     draw_edge(this.edges, this.ctx);
                     draw_vertex(this.vertex, this.ctx);
                 }
-
             },
         }).init();
     </script>
