@@ -19,7 +19,10 @@
 <body>
     <div class="graph">
         <canvas id="cv" width="1200" height="600"></canvas>
-        <button id="eff">Undo</button>
+        <div class="buttons">
+            <button id="eff">Undo</button>
+            <button id="dir">Directionnel</button>
+        </div>
     </div>
     <script>
         // plus de popup menu sur clic droit
@@ -78,7 +81,7 @@
             edges: [],
             vertex: [],
             handleMouseDown(e) {
-                console.log("ici "+e.button);
+                console.log("ici " + e.button);
                 let actual = [e.clientX - this.rect.left, e.clientY - this.rect.top, "black"];
                 let tab = this.vertex.filter(e => dist(actual, e) < 100);
             },
