@@ -1,3 +1,4 @@
+import Cairo,Fontconfig
 using Graphs
 using GraphPlot, Compose
 g = SimpleGraph(3);
